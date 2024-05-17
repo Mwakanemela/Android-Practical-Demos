@@ -3,7 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
-
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
@@ -18,7 +17,7 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
-            android:name=".workmanager.WorkManagerActivity"
+            android:name=".pdfviewer.PdfViewerActivity"
             android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,18 +26,19 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".workmanager.WorkManagerActivity"
+            android:exported="true"></activity>
+        <activity
             android:name=".docpicker.DocPicker"
             android:exported="true">
 
         </activity>
         <activity
             android:name=".customvideoplayer.MainActivity"
-            android:exported="true">
-
-        </activity>
+            android:exported="true"></activity>
         <activity
             android:name=".MainActivity"
-            android:exported="true"></activity>
+            android:exported="true" />
     </application>
 
 </manifest>

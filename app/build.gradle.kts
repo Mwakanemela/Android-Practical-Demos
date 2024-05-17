@@ -58,5 +58,6 @@ dependencies {
     // (Java only) for work manager
     implementation("androidx.work:work-runtime:2.9.0")
     implementation("com.tom-roush:pdfbox-android:2.0.27.0")
-
+//com.github.mhiew:android-pdf-viewer:3.2.0-beta.3
+    implementation("com.github.barteksc:android-pdf-viewer:2.8.2")
 }
