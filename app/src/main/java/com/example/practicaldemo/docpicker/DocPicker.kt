@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import android.util.Log
 import android.webkit.MimeTypeMap
@@ -19,6 +20,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.practicaldemo.R
 import com.tom_roush.pdfbox.pdmodel.PDDocument
+import java.io.File
 import java.io.InputStream
 import java.util.Locale
 import kotlin.math.log10
@@ -87,10 +89,14 @@ class DocPicker : AppCompatActivity() {
 
             val documentType = documentType(fileName)
             docInfo.text = "$numberOfPages pages . $fileSizes . $documentType"
+
+
             Log.d("FileName", ": $fileName")
             Log.d("FileName", "uri $uri")
 //            val filePath = FilePaths(this).getPathFromUri(uri)
 //            Log.d("FileName", ":file path: $filePath")
+            val fileExists = isFileExists(this, uri)
+            Log.d("FileName", ": fileExists $fileExists")
 
 //            document.close()
 
@@ -98,6 +104,28 @@ class DocPicker : AppCompatActivity() {
             // such as displaying it in a TextView or performing operations on the file
         }
     }
+
+//    fun isFileExists(context: Context, uri: Uri): Boolean {
+//        val filePath = FilePaths(context).getPathFromUri(uri)
+//        Log.d("FileName", "file path $filePath")
+//        return filePath?.let { File(it).exists() } ?: false
+//    }
+
+    fun isFileExists(context: Context, uri: Uri): Boolean {
+        try {
+            val documentId = DocumentsContract.getDocumentId(uri)
+            val contentUri = DocumentsContract.buildDocumentUri("com.android.providers.media.documents", documentId)
+            val cursor = context.contentResolver.query(contentUri, null, null, null, null)
+            return cursor?.use {
+                it.moveToFirst()
+                it.count > 0 // Check if the cursor contains any data
+            } ?: false
+        } catch (e: IllegalArgumentException) {
+            e.printStackTrace()
+            return false
+        }
+    }
+
 
     private fun getNumberOfPagesFromUri(context: Context, uri: Uri): Int {
         var inputStream: InputStream? = null
