@@ -50,7 +50,13 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
+    //for exoplayer
     implementation("androidx.media3:media3-exoplayer:1.3.1")
     implementation("androidx.media3:media3-exoplayer-dash:1.3.1")
     implementation("androidx.media3:media3-ui:1.3.1")
+
+    // (Java only) for work manager
+    implementation("androidx.work:work-runtime:2.9.0")
+    implementation("com.tom-roush:pdfbox-android:2.0.27.0")
+
 }
