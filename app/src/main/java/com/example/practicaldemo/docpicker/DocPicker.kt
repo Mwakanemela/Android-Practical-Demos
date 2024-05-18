@@ -23,6 +23,7 @@ import com.example.practicaldemo.R
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import org.apache.poi.hwpf.HWPFDocument
 import org.apache.poi.hwpf.usermodel.Range
+import org.apache.poi.xwpf.usermodel.XWPFDocument
 
 import java.io.File
 import java.io.InputStream
@@ -34,6 +35,8 @@ class DocPicker : AppCompatActivity() {
     private lateinit var docPicker: Button
     private lateinit var imageView: ImageView
     private lateinit var docTitle: TextView
+    private lateinit var docTitle1: TextView
+    private lateinit var docInfo1: TextView
     private lateinit var docInfo: TextView
     private lateinit var docFileLayout: ConstraintLayout
 
@@ -60,7 +63,10 @@ class DocPicker : AppCompatActivity() {
         docPicker = findViewById(R.id.button)
         imageView = findViewById(R.id.image)
         docTitle = findViewById(R.id.docTitle)
+        docTitle1 = findViewById(R.id.docTitle1)
         docInfo = findViewById(R.id.docInfo)
+        docInfo1 = findViewById(R.id.docInfo1)
+
 
         docFileLayout = findViewById(R.id.docFileLayout)
         docFileLayout.setOnClickListener {
@@ -104,15 +110,29 @@ class DocPicker : AppCompatActivity() {
             val fileName = cursor.getString(nameIndex)
             val fileSize = cursor.getLong(sizeIndex)
             docTitle.text = fileName
+            docTitle1.text = fileName
 //            val inputStream = assets.open(uri.toString())
 //            val document = PDDocument.load(inputStream)
 //            val numberOfPages = getNumberOfPagesFromUri(this, uri)
-            val numberOfPages = getNumberOfPagesFromUri(uri)
+
+            var numberOfPages = 0
 
             val fileSizes = formatFileSize(fileSize)
 
             val documentType = documentType(fileName)
+            numberOfPages = when (documentType) {
+                "doc" -> {
+                    getNumberOfPagesFromUriForDoc(uri)
+                }
+                "docx", "xlsx", "pptx" -> {
+                    getNumberOfPagesFromUriForDocx(uri)
+                }
+                else -> {
+                    getNumberOfPagesFromUriForPDF(this, uri)
+                }
+            }
             docInfo.text = "$numberOfPages pages . $fileSizes . $documentType"
+            docInfo1.text = "$numberOfPages pages . $fileSizes . $documentType"
 
 
             Log.d("FileName", ": $fileName")
@@ -152,7 +172,7 @@ class DocPicker : AppCompatActivity() {
     }
 
 
-    private fun getNumberOfPagesFromUri(context: Context, uri: Uri): Int {
+    private fun getNumberOfPagesFromUriForPDF(context: Context, uri: Uri): Int {
         var inputStream: InputStream? = null
         var numberOfPages = 0
         try {
@@ -171,7 +191,7 @@ class DocPicker : AppCompatActivity() {
         }
         return numberOfPages
     }
-    private fun getNumberOfPagesFromUri(uri: Uri): Int {
+    private fun getNumberOfPagesFromUriForDoc(uri: Uri): Int {
         var numberOfPages = 0
         val inputStream: InputStream = contentResolver.openInputStream(uri) ?: return 0
         val hwpfDocument = HWPFDocument(inputStream)
@@ -185,18 +205,23 @@ class DocPicker : AppCompatActivity() {
         inputStream.close()
 
         return numberOfPages
-//        var numberOfPages = 0
-//        val inputStream: InputStream = contentResolver.openInputStream(uri) ?: return 0
-//        val xwpfDocument = XWPFDocument(inputStream)
-//
-//        // Count the paragraphs or sections in the document
-//        numberOfPages = xwpfDocument.paragraphs.size
-//
-//        xwpfDocument.close()
-//        inputStream.close()
-//
-//        return numberOfPages
+
     }
+    private fun getNumberOfPagesFromUriForDocx(uri: Uri): Int {
+        var numberOfPages = 0
+        val inputStream: InputStream = contentResolver.openInputStream(uri) ?: return 0
+        val xwpfDocument = XWPFDocument(inputStream)
+
+        // Count the paragraphs or sections in the document
+        numberOfPages = xwpfDocument.paragraphs.size
+
+        xwpfDocument.close()
+        inputStream.close()
+
+        return numberOfPages
+
+    }
+
     @SuppressLint("DefaultLocale")
     fun formatFileSize(sizeBytes: Long): String {
         if (sizeBytes <= 0) return "0 B"
