@@ -16,10 +16,14 @@ import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.practicaldemo.R
 import com.tom_roush.pdfbox.pdmodel.PDDocument
+import org.apache.poi.hwpf.HWPFDocument
+import org.apache.poi.hwpf.usermodel.Range
+
 import java.io.File
 import java.io.InputStream
 import java.util.Locale
@@ -31,7 +35,9 @@ class DocPicker : AppCompatActivity() {
     private lateinit var imageView: ImageView
     private lateinit var docTitle: TextView
     private lateinit var docInfo: TextView
+    private lateinit var docFileLayout: ConstraintLayout
 
+    private lateinit var docUri: Uri
     private val getContent = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             result.data?.data?.let { uri ->
@@ -40,6 +46,7 @@ class DocPicker : AppCompatActivity() {
             }
         }
     }
+    @SuppressLint("QueryPermissionsNeeded")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -55,6 +62,22 @@ class DocPicker : AppCompatActivity() {
         docTitle = findViewById(R.id.docTitle)
         docInfo = findViewById(R.id.docInfo)
 
+        docFileLayout = findViewById(R.id.docFileLayout)
+        docFileLayout.setOnClickListener {
+            Log.d("DocPicker", "Clicked")
+            val viewIntent = Intent(Intent.ACTION_VIEW)
+            viewIntent.setDataAndType(docUri, "application/*")
+            viewIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+
+            // Verify if there's an app available to handle this intent
+            if (viewIntent.resolveActivity(packageManager) != null) {
+                // Start the activity with the intent
+                startActivity(viewIntent)
+            } else {
+                // Handle case where no activity is available to handle the intent
+                // (e.g., display a message to the user)
+            }
+        }
         docPicker.setOnClickListener {
             openFilePicker()
 
@@ -83,7 +106,8 @@ class DocPicker : AppCompatActivity() {
             docTitle.text = fileName
 //            val inputStream = assets.open(uri.toString())
 //            val document = PDDocument.load(inputStream)
-            val numberOfPages = getNumberOfPagesFromUri(this, uri)
+//            val numberOfPages = getNumberOfPagesFromUri(this, uri)
+            val numberOfPages = getNumberOfPagesFromUri(uri)
 
             val fileSizes = formatFileSize(fileSize)
 
@@ -93,11 +117,12 @@ class DocPicker : AppCompatActivity() {
 
             Log.d("FileName", ": $fileName")
             Log.d("FileName", "uri $uri")
+            Log.d("FileName", "file size $fileSize")
 //            val filePath = FilePaths(this).getPathFromUri(uri)
 //            Log.d("FileName", ":file path: $filePath")
             val fileExists = isFileExists(this, uri)
             Log.d("FileName", ": fileExists $fileExists")
-
+            docUri = uri
 //            document.close()
 
             // Now you have the file name, you can do further processing
@@ -139,13 +164,39 @@ class DocPicker : AppCompatActivity() {
             }
         } catch (e: Exception) {
             // Handle exceptions
+            Log.e("getNumberOfPagesFromUri", "getNumberOfPagesFromUri ex $e")
             e.printStackTrace()
         } finally {
             inputStream?.close()
         }
         return numberOfPages
     }
+    private fun getNumberOfPagesFromUri(uri: Uri): Int {
+        var numberOfPages = 0
+        val inputStream: InputStream = contentResolver.openInputStream(uri) ?: return 0
+        val hwpfDocument = HWPFDocument(inputStream)
+        val range = hwpfDocument.range
 
+        // Count the paragraphs within the range
+        val paragraphs = Range(range.startOffset, range.endOffset, hwpfDocument).numParagraphs()
+        numberOfPages = paragraphs
+
+        hwpfDocument.close()
+        inputStream.close()
+
+        return numberOfPages
+//        var numberOfPages = 0
+//        val inputStream: InputStream = contentResolver.openInputStream(uri) ?: return 0
+//        val xwpfDocument = XWPFDocument(inputStream)
+//
+//        // Count the paragraphs or sections in the document
+//        numberOfPages = xwpfDocument.paragraphs.size
+//
+//        xwpfDocument.close()
+//        inputStream.close()
+//
+//        return numberOfPages
+    }
     @SuppressLint("DefaultLocale")
     fun formatFileSize(sizeBytes: Long): String {
         if (sizeBytes <= 0) return "0 B"

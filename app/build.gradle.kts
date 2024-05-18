@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.practicaldemo"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -60,4 +60,8 @@ dependencies {
     implementation("com.tom-roush:pdfbox-android:2.0.27.0")
 //com.github.mhiew:android-pdf-viewer:3.2.0-beta.3
     implementation("com.github.barteksc:android-pdf-viewer:2.8.2")
+    implementation("org.apache.poi:poi:5.2.4")
+    implementation("org.apache.poi:poi-ooxml:5.2.4")
+    implementation("org.apache.poi:poi-scratchpad:5.2.4")
+
 }
